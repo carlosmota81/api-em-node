@@ -42,7 +42,7 @@ function auth(req, res, next){
 
 
 var DB ={
-    game:[
+    games:[
 
         {
             id:23,
@@ -80,21 +80,66 @@ var DB ={
 }
 
 
-app.get("/games",auth,(req,res)=>{
-    res.statusCode = 200;       //rota de listagem geral de produtos
-    res.json(DB.game)
+app.get("/games",auth,(req,res)=>{                           //rota de listagem geral de produtos
+    
+    var HATEOAS =[
+        {
+            href:"http://localhost:4000/game/0",
+            method: "DELETE",
+            rel: "deleta um game"
+        },
+        {
+            href: "http://localhost:4000/game/0",
+            metrod: "GET",
+            rel: "get_game"
+        },
+        {
+            href: "http://localhost:4000/game/game",
+            method: "GET",
+            rel: "get_all_games"
+        }
+    ]
+
+    res.statusCode = 200;                 
+    res.json({games:DB.games, _link: HATEOAS})
 })
 //---------------------------------------------------------------------------------
 
 app.get("/games/:id",auth, (req,res)=>{
+
     if(isNaN(req.params.id)){                       //tratamento para busca correta por numero do id
         res.sendStatus(400);                         //busca por id do produto
     }else{
         var id = parseInt(req.params.id);
+
+        var HATEOAS =[
+            {
+                href:"http://localhost:4000/game/"+id,
+                method: "DELETE",
+                rel: "deleta um game"
+            },
+            {
+                href:"http://localhost:4000/game/"+id,
+                method: "PUT",
+                rel: "edit_game"
+            },
+            {
+                href: "http://localhost:4000/game/0"+id,
+                metrod: "GET",
+                rel: "get_game"
+            },
+            {
+                href: "http://localhost:4000/game/auth",
+                method: "POST",
+                rel: "login"
+            }
+        ]
+
+
         var game = DB.game.find(g => g.id == id)
 
         if(game != undefined){
-            res.json(game)
+            res.json({game,_link: HATEOAS})
             res.statusCode(200)
         }else{
             res.sendStatus(404)
